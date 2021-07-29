@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{HH:mm:ss.SSS} %-5level [%thread] - [%logger] - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator> <!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+                <expression>
+                  if(logger.startsWith("com.ddruga") &amp;&amp; level == INFO)
+                    return true;
+                  if(logger.contains("bonigarcia") &amp;&amp; level == INFO)
+                    return true;
+                  if (level > INFO)
+                    return true;
+                  return false; 
+                </expression>
+            </evaluator>
+            <OnMismatch>DENY</OnMismatch>
+            <OnMatch>ACCEPT</OnMatch>
+        </filter>
+    </appender>
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
