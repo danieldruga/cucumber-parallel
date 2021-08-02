@@ -43,7 +43,7 @@ public class CucumberHooks implements ConcurrentEventListener {
         takeErrorScreenshot(scenario, driver);
         LOGGER.info("Driver will close for scenario - {}", scenario.getName());
 
-        driver.quit();
+        scenarioContext.retireDriver();
     }
 
     private void takeErrorScreenshot(Scenario scenario, WebDriver driver) {

@@ -1,5 +1,7 @@
 package com.ddruga.test.selenium.context;
 
+import java.util.concurrent.Semaphore;
+
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -19,6 +21,8 @@ import io.github.bonigarcia.wdm.config.DriverManagerType;
 @ScenarioScope
 public class ScenarioContext {
 
+    private static final int MAX_CONCURRENT_WEB_DRIVERS = 3;
+    private static final Semaphore semaphore = new Semaphore(MAX_CONCURRENT_WEB_DRIVERS, true);
     private WebDriver driver;
     private Scenario scenario;
 
@@ -49,10 +53,34 @@ public class ScenarioContext {
     }
 
     public void getNewDriverInstance() {
-        if (Config.getBrowserType().equals(DriverManagerType.CHROME)) {
-            driver = CustomChromeDriver.getInstance();
-        } else if (Config.getBrowserType().equals(DriverManagerType.EDGE)) {
-            driver = CustomEdgeDriver.getInstance();
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            if (Config.getBrowserType().equals(DriverManagerType.CHROME)) {
+                driver = CustomChromeDriver.getInstance();
+            } else if (Config.getBrowserType().equals(DriverManagerType.EDGE)) {
+                driver = CustomEdgeDriver.getInstance();
+            }
+        } catch (Throwable t) {
+            semaphore.release();
+            throw t;
+        }
+    }
+
+    public void retireDriver() {
+        if (driver == null) {
+            return;
+        }
+
+        try {
+            driver.quit();
+        } finally {
+            driver = null;
+            semaphore.release();
         }
     }
 
